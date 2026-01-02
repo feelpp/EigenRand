@@ -132,8 +132,8 @@ namespace Eigen
 				"Derived::Scalar must be the same with `mean` and `cov`'s Scalar."
 			);
 			static_assert(
-				MatrixBase<MeanTy>::RowsAtCompileTime == MatrixBase<CovTy>::RowsAtCompileTime &&
-				MatrixBase<CovTy>::RowsAtCompileTime == MatrixBase<CovTy>::ColsAtCompileTime,
+				static_cast<int>(MatrixBase<MeanTy>::RowsAtCompileTime) == static_cast<int>(MatrixBase<CovTy>::RowsAtCompileTime) &&
+				static_cast<int>(MatrixBase<CovTy>::RowsAtCompileTime) == static_cast<int>(MatrixBase<CovTy>::ColsAtCompileTime),
 				"assert: mean.RowsAtCompileTime == cov.RowsAtCompileTime && cov.RowsAtCompileTime == cov.ColsAtCompileTime"
 			);
 			return { mean, cov };
