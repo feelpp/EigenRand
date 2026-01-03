@@ -6,6 +6,7 @@ include(GNUInstallDirs)
 include(FetchContent)
 
 option(EIGENRAND_BUILD_TEST  "Build Test sets" ON)
+option(EIGENRAND_BUILD_BENCHMARK "Build Benchmark sets" ON)
 
 option(EIGENRAND_CMAKE_VERBOSE "Define flags for cmake verbosity" OFF)
 
@@ -97,6 +98,7 @@ target_include_directories(eigenrand INTERFACE
 )
 add_library(EigenRand::EigenRand ALIAS eigenrand)
 
+if(EIGENRAND_BUILD_BENCHMARK)
 set(ITEMS
   benchmark/benchmark.cpp
   benchmark/benchmark_mv.cpp
@@ -111,6 +113,7 @@ foreach(app ${ITEMS})
   install(TARGETS ${PROJECT_NAME}-${app_name} DESTINATION bin)
   add_test(NAME ${PROJECT_NAME}-${app_name} COMMAND ${PROJECT_NAME}-${app_name})
 endforeach()
+endif()
 
 
 set(FETCHCONTENT_SOURCE_DIR_GOOGLETEST ${CMAKE_CURRENT_SOURCE_DIR}/googletest)
