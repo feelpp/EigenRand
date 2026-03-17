@@ -146,6 +146,51 @@ namespace Eigen
 				}
 				return p * x;
 			}
+
+			template<typename Ty>
+			auto assert_lower_less_than_upper(const Ty& lower, const Ty& upper)
+				-> decltype(lower < upper, void())
+			{
+				EIGEN_UNUSED_VARIABLE(lower);
+				EIGEN_UNUSED_VARIABLE(upper);
+				eigen_assert(lower < upper);
+			}
+
+			template<typename Derived>
+			void assert_lower_less_than_upper(const Eigen::MatrixBase<Derived>& lower, const Eigen::MatrixBase<Derived>& upper)
+			{
+				EIGEN_UNUSED_VARIABLE(lower);
+				EIGEN_UNUSED_VARIABLE(upper);
+				eigen_assert((lower.array() < upper.array()).all());
+			}
+
+			template<typename Ty>
+			auto elementwise_max(const Ty& a, const Ty& b)
+				-> typename std::enable_if<std::is_arithmetic<Ty>::value, Ty>::type
+			{
+				return (a > b) ? a : b;
+			}
+
+			template<typename Derived>
+			auto elementwise_max(const Eigen::MatrixBase<Derived>& a, const Eigen::MatrixBase<Derived>& b)
+				-> typename Derived::PlainObject
+			{
+				return a.cwiseMax(b);
+			}
+
+			template<typename Ty>
+			auto elementwise_min(const Ty& a, const Ty& b)
+				-> typename std::enable_if<std::is_arithmetic<Ty>::value, Ty>::type
+			{
+				return (a < b) ? a : b;
+			}
+
+			template<typename Derived>
+			auto elementwise_min(const Eigen::MatrixBase<Derived>& a, const Eigen::MatrixBase<Derived>& b)
+				-> typename Derived::PlainObject
+			{
+				return a.cwiseMin(b);
+			}
 		}
 
 		/**
@@ -163,14 +208,14 @@ namespace Eigen
 			Support(const Ty& _lower, const Ty& _upper)
 				: lower{ _lower }, upper{ _upper }
 			{
-				eigen_assert(_lower < _upper);
+				detail::assert_lower_less_than_upper(_lower, _upper);
 			}
 
 			Support intersect(const Support& other) const
 			{
 				return {
-					(lower > other.lower) ? lower : other.lower,
-					(upper < other.upper) ? upper : other.upper
+					detail::elementwise_max(lower, other.lower),
+					detail::elementwise_min(upper, other.upper)
 				};
 			}
 		};
