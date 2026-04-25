@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.10)
 
 project(EigenRand VERSION 0.5.0 DESCRIPTION "EigenRand, Random Number Generator for Eigen")
 
@@ -31,19 +31,32 @@ message(STATUS "ADDITIONAL_FLAGS: ${ADDITIONAL_FLAGS}")
 
 if ( NOT TARGET Eigen3::Eigen )
   message(STATUS "Eigen3 not available from master project")
-  if ( EXISTS ${PROJECT_SOURCE_DIR}/include/Eigen )
+  if(EIGEN3_INCLUDE_DIRS OR EIGEN3_INCLUDE_DIR)
+    message(STATUS "Reusing Eigen3 include directories from master project")
+    if(NOT EIGEN3_INCLUDE_DIRS)
+      set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+    endif()
+    add_library(Eigen3::Eigen INTERFACE IMPORTED)
+    set_target_properties(Eigen3::Eigen PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES "${EIGEN3_INCLUDE_DIRS}")
+  elseif ( EXISTS ${PROJECT_SOURCE_DIR}/include/Eigen )
     # this is for the CI
     include_directories(${PROJECT_SOURCE_DIR}/include)
     add_library(Eigen INTERFACE)
     add_library(Eigen3::Eigen ALIAS Eigen)
     target_include_directories(Eigen INTERFACE ${PROJECT_SOURCE_DIR}/include)
   else()
-    find_package(Eigen3)
+    find_package(Eigen3 3.3 QUIET)
     # try harder to find Eigen3 using pkgconfig
     if (NOT TARGET Eigen3::Eigen )
       message(STATUS "Eigen3 not found with find_package(Eigen3), trying to find using pkgconfig")
       find_package(PkgConfig REQUIRED)
       pkg_search_module(Eigen3 REQUIRED eigen3)
+      if(Eigen3_FOUND AND Eigen3_INCLUDE_DIRS AND NOT TARGET Eigen3::Eigen)
+        add_library(Eigen3::Eigen INTERFACE IMPORTED)
+        set_target_properties(Eigen3::Eigen PROPERTIES
+          INTERFACE_INCLUDE_DIRECTORIES "${Eigen3_INCLUDE_DIRS}")
+      endif()
     endif()
   endif()
 
